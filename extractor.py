@@ -1,15 +1,14 @@
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, Canvas
 from PIL import Image, ImageTk
-from pdf2image import convert_from_path
 
 class ImageCroppingApp:
     def __init__(self, root):
         self.root = root
         self.root.title("PDF Cropping Tool")
 
-        self.canvas = tk.Canvas(root, width=800, height=600)
-        self.canvas.pack()
+        self.canvas = Canvas(root)
+        self.canvas.pack(side="left", fill=tk.BOTH, expand=True)
 
         self.image = None
         self.pdf_path = None
@@ -30,9 +29,13 @@ class ImageCroppingApp:
     def open_pdf(self):
         self.pdf_path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
         if self.pdf_path:
-            self.pdf_images = convert_from_path(self.pdf_path, dpi=200)
+            self.pdf_images = self.convert_pdf_to_images(self.pdf_path, dpi=200)
             self.page_num = 0
             self.show_page()
+
+    def convert_pdf_to_images(self, pdf_path, dpi=200):
+        from pdf2image import convert_from_path
+        return convert_from_path(pdf_path, dpi=dpi)
 
     def next_page(self):
         if self.pdf_images and self.page_num < len(self.pdf_images) - 1:
@@ -41,10 +44,13 @@ class ImageCroppingApp:
 
     def show_page(self):
         if self.pdf_images:
-            self.image = ImageTk.PhotoImage(self.pdf_images[self.page_num])
+            pdf_image = self.pdf_images[self.page_num]
+            image = ImageTk.PhotoImage(self.resize_image(pdf_image, self.canvas.winfo_width(), self.canvas.winfo_height()))
+            self.image = image
             self.canvas.create_image(0, 0, anchor="nw", image=self.image)
-            if self.rect:
-                self.canvas.delete(self.rect)
+
+    def resize_image(self, image, width, height):
+        return image.resize((width, height), Image.ANTIALIAS)
 
     def crop_page(self):
         if self.image:
@@ -54,17 +60,22 @@ class ImageCroppingApp:
 
     def on_press(self, event):
         x, y = event.x, event.y
-        self.crop_coordinates = (x, y, x, y)  # Initialize with a single point
-        self.rect = self.canvas.create_rectangle(self.crop_coordinates, outline="red")
+        x1, y1 = self.canvas.canvasx(x), self.canvas.canvasy(y)
+        self.crop_coordinates = (x1, y1, x1, y1)  # Initialize with a single point
+        self.rect = self.canvas.create_rectangle(x1, y1, x1, y1, outline="red", width=2)
 
     def on_drag(self, event):
         x, y = event.x, event.y
-        self.crop_coordinates = (self.crop_coordinates[0], self.crop_coordinates[1], x, y)
-        self.canvas.coords(self.rect, self.crop_coordinates)
+        x2, y2 = self.canvas.canvasx(x), self.canvas.canvasy(y)
+        self.crop_coordinates = (self.crop_coordinates[0], self.crop_coordinates[1], x2, y2)
+        self.canvas.coords(self.rect, *self.crop_coordinates)
 
     def on_release(self, event):
         if self.crop_coordinates:
-            cropped_image = self.pdf_images[self.page_num].crop(self.crop_coordinates)
+            x1, y1, x2, y2 = self.crop_coordinates
+            page_width, page_height = self.pdf_images[self.page_num].size
+            x1, y1, x2, y2 = int(x1 * (page_width / self.canvas.winfo_width())), int(y1 * (page_height / self.canvas.winfo_height())), int(x2 * (page_width / self.canvas.winfo_width())), int(y2 * (page_height / self.canvas.winfo_height()))
+            cropped_image = self.pdf_images[self.page_num].crop((x1, y1, x2, y2))
             cropped_image.show()  # You can save this image or do further processing
             self.crop_coordinates = None
             self.canvas.delete(self.rect)
@@ -72,4 +83,5 @@ class ImageCroppingApp:
 if __name__ == "__main__":
     root = tk.Tk()
     app = ImageCroppingApp(root)
+    root.geometry("800x600")  # Set the initial window size
     root.mainloop()
