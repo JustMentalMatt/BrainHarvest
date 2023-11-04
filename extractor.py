@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 class ImageCroppingApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("PDF Cropping Tool")
+        self.root.title("question extractor")
 
         self.canvas = Canvas(root)
         self.canvas.pack(side="left", fill=tk.BOTH, expand=True)
@@ -19,7 +19,10 @@ class ImageCroppingApp:
 
         open_button = tk.Button(root, text="Open PDF", command=self.open_pdf)
         open_button.pack()
-
+        
+        prev_page_button = tk.Button(root, text="Previous Page", command=self.previous_page)
+        prev_page_button.pack()
+        
         next_page_button = tk.Button(root, text="Next Page", command=self.next_page)
         next_page_button.pack()
 
@@ -36,7 +39,12 @@ class ImageCroppingApp:
     def convert_pdf_to_images(self, pdf_path, dpi=200):
         from pdf2image import convert_from_path
         return convert_from_path(pdf_path, dpi=dpi)
-
+    
+    def previous_page(self):
+        if self.pdf_images and self.page_num > 0:
+            self.page_num -= 1
+            self.show_page()
+            
     def next_page(self):
         if self.pdf_images and self.page_num < len(self.pdf_images) - 1:
             self.page_num += 1
@@ -50,7 +58,7 @@ class ImageCroppingApp:
             self.canvas.create_image(0, 0, anchor="nw", image=self.image)
 
     def resize_image(self, image, width, height):
-        return image.resize((width, height), Image.ANTIALIAS)
+        return image.resize((width, height), Image.LANCZOS)
 
     def crop_page(self):
         if self.image:
