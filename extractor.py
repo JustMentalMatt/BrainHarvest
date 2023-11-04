@@ -91,5 +91,5 @@ class ImageCroppingApp:
 if __name__ == "__main__":
     root = tk.Tk()
     app = ImageCroppingApp(root)
-    root.geometry("800x600")  # Set the initial window size
+    root.geometry("600x850")  # Set the initial window size
     root.mainloop()
