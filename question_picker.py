@@ -6,13 +6,13 @@ from pdf2image import convert_from_path
 class ImageCroppingApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("PDF Cropper")
+        self.root.title("question extractor")
 
         self.canvas = Canvas(root)
         self.canvas.pack(side="left", fill=tk.BOTH, expand=True)
 
         self.image = None
-        self.pdf_paths = []  # List to store multiple PDF paths
+        self.pdf_paths = []  # multipe file suopoprit
         self.pdf_images = []
         self.page_num = 0
         self.crop_coordinates = None
@@ -66,7 +66,7 @@ class ImageCroppingApp:
     def on_press(self, event):
         x, y = event.x, event.y
         x1, y1 = self.canvas.canvasx(x), self.canvas.canvasy(y)
-        self.crop_coordinates = (x1, y1, x1, y1)  # Initialize with a single point
+        self.crop_coordinates = (x1, y1, x1, y1)  # coordinates initilixztion
         self.rect = self.canvas.create_rectangle(x1, y1, x1, y1, outline="red", width=2)
 
     def on_drag(self, event):
@@ -104,5 +104,5 @@ class ImageCroppingApp:
 if __name__ == "__main__":
     root = tk.Tk()
     app = ImageCroppingApp(root)
-    root.geometry("600x850")  # Set the initial window size
+    root.geometry("600x850")  # widnow sisze
     root.mainloop()
