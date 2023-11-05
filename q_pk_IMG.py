@@ -1,56 +1,52 @@
 import tkinter as tk
 from tkinter import filedialog, Canvas
 from PIL import Image, ImageTk
-from pdf2image import convert_from_path
 
-class ImageCroppingApp:
+class IMG_Cropper:
     def __init__(self, root):
         self.root = root
-        self.root.title("question extractor")
+        self.root.title("IMG extractor")
 
         self.canvas = Canvas(root)
         self.canvas.pack(side="left", fill=tk.BOTH, expand=True)
 
         self.image = None
-        self.pdf_paths = []  # multipe file suopoprit
-        self.pdf_images = []
+        self.file_paths = []  # List to store file paths
+        self.images = []
         self.page_num = 0
         self.crop_coordinates = None
         self.rect = None
 
-        open_button = tk.Button(root, text="Open PDF(s)", command=self.open_pdf)
+        open_button = tk.Button(root, text="Open Files", command=self.open_files)
         open_button.pack()
-        
+
         prev_page_button = tk.Button(root, text="Previous Page", command=self.previous_page)
         prev_page_button.pack()
-        
+
         next_page_button = tk.Button(root, text="Next Page", command=self.next_page)
         next_page_button.pack()
-        
+
         crop_button = tk.Button(root, text="Crop Page", command=self.crop_page)
         crop_button.pack()
 
-        self.save_folder = "export_questions"  # dir for da images/ question thinsgys
+        self.save_folder = "export_questions"  # exprot directory
         self.cropped_image_count = 0
 
-    def open_pdf(self):
-        pdf_paths = filedialog.askopenfilenames(filetypes=[("PDF files", "*.pdf")])
-        if pdf_paths:
-            self.pdf_paths = pdf_paths
-            self.pdf_images = self.load_pdf_images(self.pdf_paths)
+    def open_files(self):
+        file_paths = filedialog.askopenfilenames(filetypes=[("Image files", "*.pdf *.png *.jpg *.jpeg")])
+        if file_paths:
+            self.file_paths = file_paths
+            self.load_images(self.file_paths)
             self.page_num = 0
             self.show_page()
 
-    def load_pdf_images(self, pdf_paths):
-        pdf_images = []
-        for pdf_path in pdf_paths:
-            pdf_images += convert_from_path(pdf_path, dpi=200)
-        return pdf_images
-    
+    def load_images(self, file_paths):
+        self.images = [Image.open(file_path) for file_path in file_paths]
+
     def show_page(self):
-        if self.pdf_images:
-            pdf_image = self.pdf_images[self.page_num]
-            image = ImageTk.PhotoImage(self.resize_image(pdf_image, self.canvas.winfo_width(), self.canvas.winfo_height()))
+        if self.images:
+            current_image = self.images[self.page_num]
+            image = ImageTk.PhotoImage(self.resize_image(current_image, self.canvas.winfo_width(), self.canvas.winfo_height()))
             self.image = image
             self.canvas.create_image(0, 0, anchor="nw", image=self.image)
 
@@ -66,7 +62,7 @@ class ImageCroppingApp:
     def on_press(self, event):
         x, y = event.x, event.y
         x1, y1 = self.canvas.canvasx(x), self.canvas.canvasy(y)
-        self.crop_coordinates = (x1, y1, x1, y1)  # coordinates initilixztion
+        self.crop_coordinates = (x1, y1, x1, y1)  # coord initialisaxztion
         self.rect = self.canvas.create_rectangle(x1, y1, x1, y1, outline="red", width=2)
 
     def on_drag(self, event):
@@ -78,9 +74,9 @@ class ImageCroppingApp:
     def on_release(self, event):
         if self.crop_coordinates:
             x1, y1, x2, y2 = self.crop_coordinates
-            page_width, page_height = self.pdf_images[self.page_num].size
+            page_width, page_height = self.images[self.page_num].size
             x1, y1, x2, y2 = int(x1 * (page_width / self.canvas.winfo_width())), int(y1 * (page_height / self.canvas.winfo_height())), int(x2 * (page_width / self.canvas.winfo_width())), int(y2 * (page_height / self.canvas.winfo_height()))
-            self.current_cropped_image = self.pdf_images[self.page_num].crop((x1, y1, x2, y2))
+            self.current_cropped_image = self.images[self.page_num].crop((x1, y1, x2, y2))
             self.crop_coordinates = None
             self.canvas.delete(self.rect)
             self.save_cropped_image()
@@ -88,21 +84,21 @@ class ImageCroppingApp:
     def save_cropped_image(self):
         if self.current_cropped_image:
             self.cropped_image_count += 1
-            save_path = f"{self.save_folder}/crop_{self.cropped_image_count}.png"
-            self.current_cropped_image.save(save_path, "PNG")
+            save_path = f"{self.save_folder}/cropped_image_{self.cropped_image_count}.png"
+            self.current_cropped_image.save(save_path)
 
     def previous_page(self):
-        if self.pdf_images and self.page_num > 0:
+        if self.images and self.page_num > 0:
             self.page_num -= 1
             self.show_page()
-            
+
     def next_page(self):
-        if self.pdf_images and self.page_num < len(self.pdf_images) - 1:
+        if self.images and self.page_num < len(self.images) - 1:
             self.page_num += 1
             self.show_page()
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = ImageCroppingApp(root)
-    root.geometry("600x850")  # widnow sisze
+    app = IMG_Cropper(root)
+    root.geometry("600x850")  # win size
     root.mainloop()
