@@ -94,16 +94,13 @@ class PDF_Cropper:
             self.current_cropped_image.save(save_path, "PNG")
 
     def previous_page(self):
-        global page_num
         if self.pdf_images and self.page_num > 0:
             self.page_num -= 1
             self.show_page()
             
     def next_page(self):
-        global page_num
         if self.pdf_images and self.page_num < len(self.pdf_images) - 1:
             self.page_num += 1
-            print(page_num)
             self.show_page()
             
 if __name__ == "__main__":
