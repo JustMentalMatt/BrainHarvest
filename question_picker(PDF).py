@@ -1,4 +1,5 @@
-import tkinter as tk
+# import tkinter as tk
+import customtkinter as tk
 from tkinter import filedialog, Canvas
 from PIL import Image, ImageTk
 from pdf2image import convert_from_path
@@ -19,16 +20,16 @@ class PDF_Cropper:
         self.crop_coordinates = None
         self.rect = None
 
-        open_button = tk.Button(root, text="Open File(s)", command=self.open_pdf)
+        open_button = tk.CTkButton(root, text="Open File(s)", command=self.open_pdf)
         open_button.pack()
         
-        prev_page_button = tk.Button(root, text="Previous Page", command=self.previous_page)
+        prev_page_button = tk.CTkButton(root, text="Previous Page", command=self.previous_page)
         prev_page_button.pack()
         
-        next_page_button = tk.Button(root, text="Next Page", command=self.next_page)
+        next_page_button = tk.CTkButton(root, text="Next Page", command=self.next_page)
         next_page_button.pack()
         
-        crop_button = tk.Button(root, text="Crop Page", command=self.crop_page)
+        crop_button = tk.CTkButton(root, text="Crop Page", command=self.crop_page)
         crop_button.pack()
 
         self.save_folder = "export_questions"  # dir for da images/ question thinsgys
@@ -93,17 +94,20 @@ class PDF_Cropper:
             self.current_cropped_image.save(save_path, "PNG")
 
     def previous_page(self):
+        global page_num
         if self.pdf_images and self.page_num > 0:
             self.page_num -= 1
             self.show_page()
             
     def next_page(self):
+        global page_num
         if self.pdf_images and self.page_num < len(self.pdf_images) - 1:
             self.page_num += 1
+            print(page_num)
             self.show_page()
-
+            
 if __name__ == "__main__":
-    root = tk.Tk()
+    root = tk.CTk()
     app = PDF_Cropper(root)
-    root.geometry("600x850")  # widnow sisze
+    root.geometry("600x700")  # widnow sisze
     root.mainloop()
